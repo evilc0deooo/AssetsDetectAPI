@@ -1,0 +1,11 @@
+about/
+admin/
+asdasdasda.zip
+account/login
+user/login
+s?wd=l
+admin/login
+swagger-ui.html
+webeditor
+actuator/env
+index.html
