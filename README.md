@@ -1,10 +1,6 @@
-## 打包项目
+## AssetsDetectAPI
 
-```bash
-tar --exclude='__pycache__' --exclude='.venv' \
-  --exclude='assets_docker' --exclude='.idea' --exclude='.DS_Store' \
-  --exclude='.git' --exclude='venv' -czvf assets.tar.gz ./
-```
+此项目参考了 arl、oneforall、xunfeng 等优秀项目代码。
 
 ## 创建启动 Redis 容器
 
@@ -25,7 +21,7 @@ docker run -d \
   mongo
 ```
 
-## 部署任务
+## 部署项目
 
 Python 3.9.6
 
