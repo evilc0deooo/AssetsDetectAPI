@@ -553,6 +553,7 @@ class DomainTask(CommonTask):
 
 
 def domain_task(base_domain, task_id, options):
+
     d = DomainTask(base_domain=base_domain, task_id=task_id, options=options)
     try:
         d.run()

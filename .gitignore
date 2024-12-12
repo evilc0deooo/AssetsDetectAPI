@@ -2,3 +2,5 @@
 thirdparty/.DS_Store
 .DS_Store
 /.idea
+logs/celery.log
+logs/debug.log

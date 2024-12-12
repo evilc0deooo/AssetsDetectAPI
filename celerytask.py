@@ -12,6 +12,7 @@ from celery import Celery, platforms
 from logging.handlers import RotatingFileHandler
 from task.domain_task import domain_task as DomainTask
 from task.ip_task import ip_task as IP_Task
+from task.fileleak_task import file_scan_task as fileLeak_Task
 from config import CELERY_BROKER_URL, RESULT_BACKEND_URL
 from common.log_msg import logger
 
@@ -36,7 +37,7 @@ celery.conf.update(
 platforms.C_FORCE_ROOT = True
 
 """
-celery -A celerytask.celery worker -l debug -Q assets_task -n celery_task -c 2 -O fair -f logs/celery.log
+python3 -m celery -A celerytask.celery worker -l debug -Q assets_task -n celery_task -c 2 -O fair -f logs/celery.log
 """
 
 
@@ -84,6 +85,15 @@ def ip_task(options):
     task_id = options['task_id']
     IP_Task(target, task_id, task_options)
 
+def file_leak_task(options):
+    """
+    常规目录扫描任务（单独执行）
+    """
+    url = options['target']
+    task_options = options['options']
+    task_id = options['task_id']
+    fileLeak_Task(url, task_id, task_options)
+
 
 def run_task(options):
     """
@@ -95,6 +105,7 @@ def run_task(options):
     action_map = {
         'domain_task': domain_task,
         'ip_exec_task': ip_task,
+        'file_leak_task': file_leak_task,
     }
     start_time = time.time()
     logger.info(f'run_task action: {action} time: {start_time}')

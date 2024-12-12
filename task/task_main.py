@@ -20,18 +20,23 @@ def target2list(target):
     return target_lists
 
 
-def get_ip_domain_list(target):
+def get_ip_domain_url_list(target):
     """
-    获取 IP 和域名列表
+    获取 IP 、域名列表、url 列表
     """
     target_lists = target2list(target)
     ip_list = set()
     domain_list = set()
+    url_list = set()
     for item in target_lists:
         if not item:
             continue
 
-        if is_vaild_ip_target(item):
+        # 如果带有 http 字符判断为 url
+        if 'http' in item:
+            url_list.add(item)
+
+        elif is_vaild_ip_target(item):
             if not not_in_black_ips(item):
                 raise Exception(f'{item} 在黑名单 IP 中')
             ip_list.add(item)
@@ -47,13 +52,13 @@ def get_ip_domain_list(target):
         else:
             raise Exception(f'{item} 无效的目标')
 
-    return ip_list, domain_list
+    return ip_list, domain_list, url_list
 
 
 def build_task_data(project_id, project_name, task_target, task_type, task_tag, options):
     # 检查是不是正常的任务目标类别
 
-    avail_task_type = ['IP', 'DOMAIN', 'RISK_CRUISING']
+    avail_task_type = ['IP', 'DOMAIN', 'URL', 'RISK_CRUISING']
     if task_type not in avail_task_type:
         raise Exception(f'{task_type} 无效的任务类型')
 
@@ -102,6 +107,7 @@ def submit_task_task(project_name, target, options, project_description=None):
     """
 
     # 创建项目
+
     if not project_description or project_description == 'null':
         project_description = '太懒了这个项目没有描述'
     project_info = {
@@ -115,7 +121,7 @@ def submit_task_task(project_name, target, options, project_description=None):
 
     task_data_list = []
 
-    ip_list, domain_list = get_ip_domain_list(target)
+    ip_list, domain_list, url_list = get_ip_domain_url_list(target)
     if ip_list:
         # 针对 IP 扫描任务
         for ip in ip_list:
@@ -132,10 +138,20 @@ def submit_task_task(project_name, target, options, project_description=None):
             task_data = submit_task(task_data)
             task_data_list.append(task_data)
 
+    if url_list:
+        # 针对 URL 直接目录扫描任务
+        task_data = build_task_data(project_id=project_id, project_name=project_name, task_target=list(url_list),
+                                    task_type='URL', task_tag='task', options=options)
+        task_data = submit_task(task_data)
+        task_data_list.append(task_data)
+
     return task_data_list
 
 
 if __name__ == '__main__':
+    """
+    测试任务入口
+    """
     options = {
         'domain_brute': 'true',  # 域名爆破
         'domain_brute_type': 'test',  # 域名爆破字典
@@ -151,9 +167,25 @@ if __name__ == '__main__':
         'ssl_cert': 'true',  # 证书识别
         'site_identify': 'true',  # 站点指纹
         'site_capture': 'true',  # 站点截图
+        'only_file_leak': 'true',
         'file_leak': 'true',  # 目录爆破
     }
-    submit_task_task(project_name='test project',
-                     project_description='test project',
-                     target='14.136.48.245/24',
+    submit_task_task(project_name='test project2',
+                     project_description='test project2',
+                     target='''
+                        http://ng.zxebike.com
+                        https://display.zxebike.com
+                        https://enterprise.zxebike.com
+                        https://localserver.zxebike.com
+                        https://tm.zxebike.com
+                        https://youyan.zxebike.com
+                        https://www.baidu.com/
+                        https://www.baidu.com/
+                        https://www.baidu.com/
+                        https://zxebike.com
+                        https://www.zxebike.com
+                        https://enterprise.zxebike.com/login/login
+                        https://zhdj.nbpbl.com
+                        https://zhdj.nbpbl.com/webroot/decision/login
+                     ''',
                      options=options)

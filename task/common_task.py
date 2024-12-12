@@ -107,8 +107,9 @@ class WebSiteFetch(object):
         目录爆破
         """
         for site in self.poc_sites:
-            # from config import FILE_LEAK_TEST_DICT
             # 测试字典 -> FILE_LEAK_TEST_DICT
+            # from config import FILE_LEAK_TEST_DICT
+            # pages = file_leak([site], thirdparty.load_file(FILE_LEAK_TEST_DICT))
             pages = file_leak([site], thirdparty.load_file(FILE_LEAK_DICT))
             for page in pages:
                 item = page.dump_json()
@@ -154,22 +155,30 @@ class WebSiteFetch(object):
         """
         对站点进行基本信息的获取
         """
-        self.run_func('fetch_site', self.fetch_site)
+        if self.options.get('only_file_leak', False):
+            self.available_sites = []
+            self.available_sites = self.sites
+            print(self.available_sites)
+            """ 文件目录爆破 """
+            self.file_leak()
 
-        """ 执行站点指纹识别 """
-        if self.options.get('site_identify', True):
-            self.run_func('site_identify', self.site_identify)
+        else:
+            self.run_func('fetch_site', self.fetch_site)
 
-        """ 保存站点信息到数据库 """
-        self.save_site_info()
+            """ 执行站点指纹识别 """
+            if self.options.get('site_identify', True):
+                self.run_func('site_identify', self.site_identify)
 
-        """ 站点截图 """
-        if self.options.get('site_capture', False):
-            self.run_func('site_capture', self.site_screenshot)
+            """ 保存站点信息到数据库 """
+            self.save_site_info()
 
-        """ 文件目录爆破 """
-        if self.options.get('file_leak', False):
-            self.run_func('file_leak', self.file_leak)
+            """ 站点截图 """
+            if self.options.get('site_capture', False):
+                self.run_func('site_capture', self.site_screenshot)
+
+            """ 文件目录爆破 """
+            if self.options.get('file_leak', False):
+                self.run_func('file_leak', self.file_leak)
 
 
 class FindSite(object):
@@ -270,16 +279,17 @@ def ssl_cert(ip_info_list, base_domain):
 
 
 if __name__ == '__main__':
-    task_id = '6017edf36591e76d16171b65'
+    task_id = '2017edf36591e76d16171b62'
     site_list = ['http://ng.zxebike.com', 'https://display.zxebike.com', 'https://enterprise.zxebike.com',
                  'https://localserver.zxebike.com', 'https://tm.zxebike.com', 'https://youyan.zxebike.com',
-                 'https://images.zxebike.com', 'https://zxebike.com', 'https://www.zxebike.com',
+                 'https://www.baidu.com/', 'https://zxebike.com', 'https://www.zxebike.com',
                  'https://enterprise.zxebike.com/login/login', 'https://zhdj.nbpbl.com',
                  'https://zhdj.nbpbl.com/webroot/decision/login']
 
     options = {
-        'site_identify': False,  # 站点指纹识别
-        'site_capture': False,  # 站点截图
+        'only_file_leak': False,  # 只允许目录扫描
+        'site_identify': True,  # 站点指纹识别
+        'site_capture': True,  # 站点截图
         'file_leak': True,  # 目录扫描
     }
     web_site_fetch = WebSiteFetch(task_id=task_id, sites=site_list, options=options)
