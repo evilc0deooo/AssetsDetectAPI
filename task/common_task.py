@@ -102,6 +102,7 @@ class WebSiteFetch(object):
             curr_site = site_info['site']
             self.available_sites.append(curr_site)
 
+
     def file_leak(self):
         """
         目录爆破

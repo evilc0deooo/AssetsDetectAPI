@@ -10,7 +10,8 @@ ns = Namespace('project', description='项目信息')
 base_search_project_fields = {
     'project_id': fields.String(description='项目 ID'),
     'project_name': fields.String(description='项目名称'),
-    'project_description': fields.String(description='项目描述')
+    'project_description': fields.String(description='项目描述'),
+    'account': fields.String(description='创建人')
 }
 
 base_search_project_fields.update(base_query_fields)
@@ -29,9 +30,20 @@ class Project(SimpleResource):
         项目信息查询
         """
         args = self.parser.parse_args()
+        account = args.get('account')
+        results = []
         data = self.build_data(args=args, collection='project')
+        if account:
+            for project in data['items']:
+                # 创建人 account 字段必须是全等的关系
+                if project.get('account') == account:
+                    results.append(project)
 
-        return data
+            data['items'] = results
+            return data
+
+        else:
+            return data
 
 
 delete_project_fields = ns.model('DeleteProject', {

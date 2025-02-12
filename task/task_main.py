@@ -101,7 +101,7 @@ def build_task_data(project_id, project_name, task_target, task_type, task_tag, 
     return task_data
 
 
-def submit_task_task(project_name, target, options, project_description=None):
+def submit_task_task(project_name, target, options, project_description, account='admin'):
     """
     直接根据目标下发任务
     """
@@ -109,10 +109,12 @@ def submit_task_task(project_name, target, options, project_description=None):
     # 创建项目
 
     if not project_description or project_description == 'null':
-        project_description = '太懒了这个项目没有描述'
+        project_description = 'Good Job :)'
+
     project_info = {
         'project_name': project_name,
         'project_description': project_description,
+        'account': account,
         'create_time': thirdparty.curr_date(time.time()),
     }
     project_id = str(uuid.uuid4())
@@ -125,23 +127,20 @@ def submit_task_task(project_name, target, options, project_description=None):
     if ip_list:
         # 针对 IP 扫描任务
         for ip in ip_list:
-            task_data = build_task_data(project_id=project_id, project_name=project_name, task_target=ip,
-                                        task_type='IP', task_tag='task', options=options)
+            task_data = build_task_data(project_id=project_id, project_name=project_name, task_target=ip, task_type='IP', task_tag='task', options=options)
             task_data = submit_task(task_data)
             task_data_list.append(task_data)
 
     if domain_list:
         # 针对域名扫描任务
         for domain_target in domain_list:
-            task_data = build_task_data(project_id=project_id, project_name=project_name, task_target=domain_target,
-                                        task_type='DOMAIN', task_tag='task', options=options)
+            task_data = build_task_data(project_id=project_id, project_name=project_name, task_target=domain_target, task_type='DOMAIN', task_tag='task', options=options)
             task_data = submit_task(task_data)
             task_data_list.append(task_data)
 
     if url_list:
         # 针对 URL 直接目录扫描任务
-        task_data = build_task_data(project_id=project_id, project_name=project_name, task_target=list(url_list),
-                                    task_type='URL', task_tag='task', options=options)
+        task_data = build_task_data(project_id=project_id, project_name=project_name, task_target=list(url_list), task_type='URL', task_tag='task', options=options)
         task_data = submit_task(task_data)
         task_data_list.append(task_data)
 
@@ -167,7 +166,7 @@ if __name__ == '__main__':
         'ssl_cert': 'true',  # 证书识别
         'site_identify': 'true',  # 站点指纹
         'site_capture': 'true',  # 站点截图
-        'only_file_leak': 'true',
+        'only_file_leak': 'true',  # 仅执行目录扫描
         'file_leak': 'true',  # 目录爆破
     }
     submit_task_task(project_name='test project2',

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import time
+
+from requests.packages import target
+
 import thirdparty
 from bson import ObjectId
 from IPy import IP
@@ -544,6 +547,7 @@ class DomainTask(CommonTask):
         self.domain_fetch()
         self.start_ip_fetch()
         self.start_site_fetch()
+
         self.insert_cip_stat()
         self.insert_task_stat()
 

@@ -34,7 +34,7 @@ add_task_fields = ns.model('AddTask', {
     'domain_brute_type': fields.String(description='选择域名爆破字典'),
     'alt_dns': fields.Boolean(description='智能字典组合'),
     'dns_query_plugin': fields.Boolean(example=False, default=True, description='批量执行域名接口查询插件'),
-    'skip_not_found_domain': fields.Boolean(description='域名搜集跳过泛解析只针对 dns_query_plugin 进行处理，其他子域名搜集方法自带泛解析检测'),
+    'skip_not_found_domain': fields.Boolean(description='域名搜集跳过泛解析只针对 dns_query_plugin 进行处理, 其他子域名搜集方法自带泛解析检测'),
     'port_scan': fields.Boolean(example=False, description='启动端口扫描'),
     'skip_scan_cdn_ip': fields.Boolean(example=False, description='端口扫描跳过 CDN'),
     'port_scan_type': fields.String(description='端口扫描类型'),
@@ -45,6 +45,8 @@ add_task_fields = ns.model('AddTask', {
     'site_identify': fields.Boolean(example=False, description='站点指纹'),
     'site_capture': fields.Boolean(example=False, description='站点截图'),
     'file_leak': fields.Boolean(example=False, description='目录爆破'),
+    'only_file_leak': fields.Boolean(example=False, description='仅执行目录扫描'),
+    'account': fields.String(example='admin', description='创建人'),
 })
 
 
@@ -60,7 +62,6 @@ class Task(SimpleResource):
         """
         args = self.parser.parse_args()
         data = self.build_data(args=args, collection='task')
-
         return data
 
     @auth
@@ -70,13 +71,13 @@ class Task(SimpleResource):
         任务提交
         """
         args = self.parse_args(add_task_fields)
-
         project_name = args.pop('project_name')
         project_description = args.pop('project_description')
+        account = args.pop('account')
         target = args.pop('target')
 
         try:
-            task_data_list = submit_task_task(project_name=project_name, project_description=project_description, target=target, options=args)
+            task_data_list = submit_task_task(project_name=project_name, project_description=project_description, target=target, options=args, account=account)
         except Exception as e:
             logger.exception(e)
             return build_ret({'message': '系统异常', 'code': 300, }, {'error': str(e)})
@@ -93,7 +94,7 @@ class Task(SimpleResource):
 
 
 batch_stop_fields = ns.model('BatchStop', {
-    "task_id": fields.List(fields.String(description='任务 ID'), required=True),
+    'task_id': fields.List(fields.String(description='任务 ID'), required=True),
 })
 
 

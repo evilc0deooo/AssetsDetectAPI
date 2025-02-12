@@ -102,3 +102,7 @@ def run_query_plugin(target):
     logger.info(f'{target} subdomains result {total_count} ({t2 - t1:.2f}s)')
 
     return domains
+
+if __name__ == '__main__':
+    data = run_query_plugin('baidu.com')
+    print(data)

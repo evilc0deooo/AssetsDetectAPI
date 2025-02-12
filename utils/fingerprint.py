@@ -126,11 +126,11 @@ def fetch_fingerprint(content, headers, title, favicon_hash, finger_list):
                 break
 
             try:
-                if html.encode('gbk') in content:
+                if html.encode('gbk', errors='ignore') in content:
                     finger_name_list.append(rule_name)
                     match_flag = True
                     break
-            except Exception:
+            except UnicodeEncodeError:
                 logger.debug(f'error on fetch_fingerprint {html} to gbk')
 
         if match_flag:
@@ -167,4 +167,7 @@ def fetch_fingerprint(content, headers, title, favicon_hash, finger_list):
 FINGERPRINT = load_fingerprint()
 
 if __name__ == '__main__':
-    load_fingerprint()
+    for i in FINGERPRINT:
+        print(i['name'].lower())
+    # print(FINGERPRINT)
+

@@ -24,6 +24,7 @@ class Crtsh(object):
 
         text = resp.text.replace(r'\n', ' ')
         subdomains = match_subdomains(self.domain, text)
+        print(subdomains)
         self.subdomains.update(subdomains)
 
     def run(self):

@@ -3,7 +3,9 @@
 import time
 import binascii
 import mmh3
+import re
 from pyquery import PyQuery
+from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from services.auto_tag import run as auto_tag
 from common.base_thread import BaseThread
@@ -117,15 +119,19 @@ class FetchSite(BaseThread):
         finger_list = []
 
         for name in result:
+            finger_name = name.lower()
             finger_item = {
                 'icon': 'default.png',
-                'name': name,
+                'name': finger_name,
                 'confidence': '80',
                 'version': '',
                 'website': '',
                 'categories': []
             }
-            finger_list.append(finger_item)
+
+            # 对指纹名称进行去重
+            if finger_item not in finger_list:
+                finger_list.append(finger_item)
 
         if finger_list:
             item['finger'] = finger_list
@@ -135,7 +141,6 @@ class FetchSite(BaseThread):
             site = 'http://' + site
         hostname = urlparse(site).netloc
         conn = http_req(site, timeout=self.http_timeout)
-
         # 遇到 ip 白名单拦截尝试使用 XFF 伪造进行绕过处理
         if conn.status_code == 403 and b'Because of your IP You Do Not Have The Permission To Access This Page' in conn.content:
             headers = {
@@ -146,6 +151,38 @@ class FetchSite(BaseThread):
             }
 
             conn = http_req(site, headers=headers, timeout=self.http_timeout, allow_redirects=True)
+
+        # 实战中遇到一些 403 页面但存在 url 跳转体，进行一些兼容处理
+        elif conn.status_code == 403 and b'window.location' in conn.content:
+            site_url = ''
+            soup = BeautifulSoup(conn.text, 'html.parser')
+            meta_refresh = soup.find('meta', {'http-equiv': 'refresh'})
+            if meta_refresh:
+                script_tags = soup.find_all('script')
+                patterns = [
+                    r'window\.location\.replace\(["\']([^"\']+)["\']\);',
+                    r'window\.location\.href\s*=\s*["\']([^"\']+)["\'];',
+                    r'window\.location\.assign\(["\']([^"\']+)["\']\);',
+                    r'document\.location\s*=\s*["\']([^"\']+)["\'];',
+                    r'window\.navigate\(["\']([^"\']+)["\']\);'
+                ]
+                for script in script_tags:
+                    script_text = script.get_text()
+                    for pattern in patterns:
+                        match = re.search(pattern, script_text)
+                        if match:
+                            redirect_url = match.group(1)
+                            if 'http' not in redirect_url:
+                                site_url = urljoin(site, redirect_url)
+                            else:
+                                site_url = redirect_url
+                            break
+                    else:
+                        continue
+                    break
+
+            if site_url:
+                conn = http_req(site_url, timeout=self.http_timeout, allow_redirects=True)
 
         item = {
             'site': site,

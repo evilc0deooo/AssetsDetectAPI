@@ -2,6 +2,7 @@
 
 from flask import Flask
 from flask_restx import Api
+from waitress import serve
 from routes import site, image, domain, ip, user, view_task, file, service, cert, project, cip
 
 app = Flask(__name__)
@@ -16,8 +17,7 @@ authorizations = {
     }
 }
 
-api = Api(app, prefix='/api', doc='/api/doc', title='API Platform', authorizations=authorizations,
-          description='Nine Code Platform', security='ApiKeyAuth', version='0.0.1')
+api = Api(app, prefix='/api', doc='/api/docs', title='Assets Collection Platform API', authorizations=authorizations, description='Assets Collection Platform API', security='ApiKeyAuth', version='0.0.2')
 
 api.add_namespace(user.ns)
 api.add_namespace(project.ns)
@@ -31,8 +31,5 @@ api.add_namespace(service.ns)
 api.add_namespace(cert.ns)
 api.add_namespace(cip.ns)
 
-# 初始化账号密码 admin / !@#password
-# user.init_user()
-
 if __name__ == '__main__':
-    app.run(debug=True, port=5020, host='0.0.0.0')
+    serve(app, host='127.0.0.1', port=5020, connection_limit=1000, channel_timeout=3600, threads=8)
