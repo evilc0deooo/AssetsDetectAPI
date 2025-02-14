@@ -9,7 +9,7 @@ import thirdparty
 from typing import List
 from urllib.parse import urlparse, urljoin
 from tld import get_tld
-from config import FILE_LEAK_DICT
+from config import FILE_LEAK_TEST_DICT
 from common.base_thread import BaseThread
 from common.conn import http_req
 from utils.domain import get_title
@@ -258,9 +258,9 @@ class FileLeak(BaseThread):
         self.page200_code_list = [200, 301, 302, 500]
         self.page404_title = ['404', '不存在', '错误', '403', '禁止访问', '请求含有不合法的参数', '找不到']
         self.page404_title.extend(['网络防火墙', '访问拦截', '由于安全原因JSP功能默认关闭'])
-        self.page404_content = [b'<script>document.getElementById("a-link").click();</script>',
-                                b'<h1 data-translate="block_headline">Sorry, you have been blocked</h1>',
-                                b'Not found']
+        self.page404_content = [b'<script>document.getElementById("a-link").click();</script>', b'Not found']
+        self.waf_content = [b'<h1 data-translate="block_headline">Sorry, you have been blocked</h1>', b'gostr=/waf.123.123;locaid=d001;']
+        self.waf_content.extend([b'alicdn.com/sd/punish/waf_block.html'])
         self.location404 = ['/auth/login/', 'error.html']
         self.page_all = []
         self.error_times = 0
@@ -268,10 +268,26 @@ class FileLeak(BaseThread):
         self.skip_302 = False
         self.location_404_url = set()
 
+    def check_waf_in_text(self, response_content):
+        """
+        判断 WAF 特征列表的元素是否在响应体中
+        """
+        for waf_key in self.waf_content:
+            if waf_key in response_content:
+                return True
+        return False
+
     def work(self, url):
-        if self.error_times >= 20:
+        if self.error_times >= 15:
             return
+
         req = self.http_req(url)
+
+        # 添加识别 WAF 功能,
+        waf_check = self.check_waf_in_text(req.content)
+        if waf_check:  # 触发 WAF 拦截直接停止后续扫描
+            return
+
         page = Page(req)
         if self.record_page:
             self.page_all.append(page)
@@ -437,8 +453,7 @@ def normal_url(url):
 class GenBackDicts:
     def __init__(self, url):
         self.target = normal_url(url)
-        self.suffixs = ['.tar', '.tar.gz', '.zip', '.rar', '.7z', '.bz2', '.gz', '_bak.rar', '.war', '2022.rar',
-                        '2022.zip', '2023.rar', '2023.zip']
+        self.suffixs = ['.tar', '.tar.gz', '.zip', '.rar', '.7z', '.bz2', '.gz', '_bak.rar', '.war', '2022.rar', '2022.zip', '2023.rar', '2024.zip', '2024.rar', '2025.zip', '2025.rar', '2025.zip']
         self.backup_path_deep = 7
         self.dymaic_dicts_deep = 5
         self.path = urlparse(self.target).path
@@ -542,10 +557,10 @@ def run(targets, dicts, gen_dict=True) -> List[Page]:
 
 
 if __name__ == '__main__':
-    dicts = thirdparty.load_file(FILE_LEAK_DICT)
+    dicts = thirdparty.load_file(FILE_LEAK_TEST_DICT)
 
-    url_list = ['http://www.baidu.com']
-    pages = run(url_list, dicts)
+    url_list = ['https://toodpe.aliwork.com/']
+    pages = run(url_list, dicts, gen_dict=False)
     for page in pages:
         item = page.dump_json()
         print(item)

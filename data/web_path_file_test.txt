@@ -9,3 +9,4 @@ swagger-ui.html
 webeditor
 actuator/env
 index.html
+api/data/manager/v2/associated..;/swagger-ui.html
