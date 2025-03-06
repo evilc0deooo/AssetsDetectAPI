@@ -5,3 +5,4 @@ thirdparty/.DS_Store
 logs/celery.log
 logs/debug.log
 /logs
+logs/debug.log
