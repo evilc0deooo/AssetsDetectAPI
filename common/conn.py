@@ -15,7 +15,7 @@ proxies = {
 SET_PROXY = False
 
 header_agents = [
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.96.2 Chrome/128.0.6613.186 Electron/32.2.6 Safari/537.36'
 ]
@@ -48,11 +48,10 @@ def http_req(url, method='get', **kwargs):
     # 不允许缓存，每次请求都获取服务器上最新的资源
     headers.setdefault('Cache-Control', 'max-age=0')
     kwargs['headers'] = headers
-    if PROXY_URL:
+    if SET_PROXY:
         proxies['https'] = PROXY_URL
         proxies['http'] = PROXY_URL
         kwargs['proxies'] = proxies
 
     conn = getattr(requests, method)(url, **kwargs)
-
     return conn

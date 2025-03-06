@@ -64,8 +64,8 @@ FORBIDDEN_DOMAINS = []
 网络相关配置
 """
 # 代理地址
-PROXY_URL = ''
-# PROXY_URL = '127.0.0.1:8080'
+# PROXY_URL = ''
+PROXY_URL = '127.0.0.1:8080'
 
 # 域名爆破并发数
 DOMAIN_BRUTE_CONCURRENT = 300

@@ -4,3 +4,4 @@ thirdparty/.DS_Store
 /.idea
 logs/celery.log
 logs/debug.log
+/logs
